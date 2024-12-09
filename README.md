@@ -80,7 +80,7 @@ AetherGuard isn't just another password manager – it's your digital sanctuary.
 
 1. Clone the repository:
    ```
-   git clone https://github.com/thisisarnabdas/AetherGuard.git
+   git clone https://github.com/thisisarnabdas/password_manager.git
    ```
 2. Navigate to project directory:
    ```
