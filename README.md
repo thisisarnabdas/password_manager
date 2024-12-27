@@ -84,7 +84,7 @@ AetherGuard isn't just another password manager – it's your digital sanctuary.
    ```
 2. Navigate to project directory:
    ```
-   cd AetherGuard
+   cd password_manager
    ```
 3. Install dependencies
    ```
