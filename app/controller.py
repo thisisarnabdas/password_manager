@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, url_for, redirect, flash, session, request
 from app import db, ph
-from app.forms import RegistrationForm, LoginForm, PasswordForm
+from app.forms import RegistrationForm, LoginForm, PasswordForm, ChangePasswordForm, DeleteAccountForm
 from app.models import User, StoredPassword
 from functools import wraps
 from app.config import Config
@@ -247,4 +247,46 @@ def delete_password(id):
 @controller.route("/about")
 def about():
     return render_template("about.html")
+
+
+@controller.route("/change_user_password", methods=['GET', 'POST'])
+@login_required
+def change_password():
+    form = ChangePasswordForm()
+    user = User.query.get(session.get('user_id'))
+
+    if form.validate_on_submit():
+        if user.check_password(form.current_password.data):
+            user.set_password(form.new_password.data)
+            db.session.commit()
+            flash("Password updated successfully!", "success")
+            return redirect(url_for("controller.dashboard"))
+        else:
+            flash("Current password is incorrect.", "danger")
+
+    return render_template("change_user_password.html", form=form)
+
+
+@controller.route("/delete_account", methods=['GET', 'POST'])
+@login_required
+def delete_account():
+    form = DeleteAccountForm()
+    user = User.query.get(session.get('user_id'))
+
+    if form.validate_on_submit():
+        if form.confirm_username.data == user.username:
+            try:
+                db.session.delete(user)
+                db.session.commit()
+                session.clear()  # Clear session after deleting the account
+                flash("Your account has been deleted. You have been logged out.", "success")
+                return redirect(url_for("controller.home"))
+            except Exception as e:
+                db.session.rollback()
+                flash("An error occurred while deleting your account. Please try again.", "danger")
+        else:
+            flash("Username confirmation does not match.", "danger")
+
+    return render_template("delete_account.html", form=form)
+
 

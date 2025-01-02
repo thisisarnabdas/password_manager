@@ -10,8 +10,9 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
-
-    stored_passwords = db.relationship("StoredPassword", backref="user", lazy=True)
+    stored_passwords = db.relationship('StoredPassword', backref='user',
+                                       cascade='all, delete-orphan')
+    # stored_passwords = db.relationship("StoredPassword", backref="user", lazy=True)
 
     def set_password(self, password):
         self.password_hash = ph.hash(password)
