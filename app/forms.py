@@ -26,9 +26,9 @@ class LoginForm(FlaskForm):
 
 
 class PasswordForm(FlaskForm):
-    title = StringField('Title', validators=[DataRequired(message="Title is required.")])
-    username = StringField('Username', validators=[DataRequired(message="Username is required.")])
-    password = PasswordField('Password', validators=[DataRequired(message="Password is required.")])
+    title = StringField('Title', validators=[Optional()])
+    username = StringField('Username', validators=[Optional()])
+    password = PasswordField('Password', validators=[Optional()])
     url = URLField('URL', validators=[Optional(), URL(message="Invalid URL.")])
     submit = SubmitField('Add Password')
 

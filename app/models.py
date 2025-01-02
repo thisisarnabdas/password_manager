@@ -28,7 +28,6 @@ class StoredPassword(db.Model):
     title = db.Column(db.String(100), nullable=False)
     username = db.Column(db.String(100), nullable=False)
     encrypted_password = db.Column(db.LargeBinary, nullable=False)
-    iv = db.Column(db.LargeBinary(16), nullable=False)  # AES initialization vector
     url = db.Column(db.String(255), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -37,36 +36,28 @@ class StoredPassword(db.Model):
         """Encrypts the password using AES-256 and the static key."""
         try:
             key = Config.STATIC_AES_KEY
-            iv = os.urandom(16)  # Generate a new IV for encryption
             print(f"Debug: Static Key Used for Encryption: {key}")
-            print(f"Debug: IV for Encryption: {iv}")
-            
-            cipher = Cipher(algorithms.AES(key), modes.CFB(iv), backend=default_backend())
+            cipher = Cipher(algorithms.AES(key), modes.ECB(), backend=default_backend())  # ECB mode
             encryptor = cipher.encryptor()
-            self.encrypted_password = encryptor.update(raw_password.encode()) + encryptor.finalize()
-            self.iv = iv
-            
-            # Debugging: Log encrypted password and IV
+            padded_password = raw_password.ljust(16, " ")
+            self.encrypted_password = encryptor.update(padded_password.encode()) + encryptor.finalize()
             print(f"Debug: Successfully Encrypted Password: {self.encrypted_password}")
         except Exception as e:
             print(f"Encryption failed: {e}")
             raise
 
     def decrypt_password(self):
-        """Decrypts the stored password using AES-256 and the static key."""
         try:
             key = Config.STATIC_AES_KEY
             print(f"Debug: Static Key Used for Decryption: {key}")
-            print(f"Debug: IV for Decryption: {self.iv}")
             print(f"Debug: Encrypted Password for Decryption: {self.encrypted_password}")
             
-            cipher = Cipher(algorithms.AES(key), modes.CFB(self.iv), backend=default_backend())
+            cipher = Cipher(algorithms.AES(key), modes.ECB(), backend=default_backend())  # ECB mode
             decryptor = cipher.decryptor()
             decrypted = decryptor.update(self.encrypted_password) + decryptor.finalize()
-            
-            # Debugging: Log decrypted password
-            print(f"Debug: Successfully Decrypted Password: {decrypted.decode()}")
-            return decrypted.decode()
+            decrypted_password = decrypted.decode().rstrip(" ")
+            print(f"Debug: Successfully Decrypted Password: {decrypted_password}")
+            return decrypted_password
         except Exception as e:
             print(f"Decryption failed: {e}")
             return None
