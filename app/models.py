@@ -48,14 +48,10 @@ class StoredPassword(db.Model):
     def decrypt_password(self):
         try:
             key = Config.STATIC_AES_KEY
-            print(f"Debug: Static Key Used for Decryption: {key}")
-            print(f"Debug: Encrypted Password for Decryption: {self.encrypted_password}")
-            
             cipher = Cipher(algorithms.AES(key), modes.ECB(), backend=default_backend())  # ECB mode
             decryptor = cipher.decryptor()
             decrypted = decryptor.update(self.encrypted_password) + decryptor.finalize()
             decrypted_password = decrypted.decode().rstrip(" ")
-            print(f"Debug: Successfully Decrypted Password: {decrypted_password}")
             return decrypted_password
         except Exception as e:
             print(f"Decryption failed: {e}")
