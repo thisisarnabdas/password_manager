@@ -1,8 +1,9 @@
 from flask import Blueprint, render_template, url_for, redirect, flash, session, request
 from app import db, ph
-from app.forms import RegistrationForm, LoginForm, PasswordForm
+from app.forms import RegistrationForm, LoginForm, PasswordForm, ChangePasswordForm, DeleteAccountForm
 from app.models import User, StoredPassword
 from functools import wraps
+from app.config import Config
 import random
 import string
 from sqlalchemy.exc import IntegrityError
@@ -98,23 +99,32 @@ def dashboard():
         flash("User not found. Please log in again.", "warning")
         return redirect(url_for("controller.login"))
 
-    key = user.get_aes_key(user.password_hash)
+    # Fetch stored passwords from the database
     stored_passwords = StoredPassword.query.filter_by(user_id=user.id).all()
-
     decrypted_passwords = []
-    for p in stored_passwords:
-        decrypted = p.decrypt_password(key)
-        print(f"Decrypted password for {p.title}: {decrypted}")  # Debugging line
-        if decrypted:
-            decrypted_passwords.append({
-                "id": p.id,
-                "title": p.title,
-                "username": p.username,
-                "url": p.url,
-                "password": decrypted
-            })
+
+    for password_entry in stored_passwords:
+        # Debugging: Log fetched encrypted data
+        print(f"Debug: Fetched Encrypted Password: {password_entry.encrypted_password}")
+
+        # Decrypt the password
+        decrypted_password = password_entry.decrypt_password()
+
+        # Debugging: Log decrypted password
+        print(f"Debug: Dashboard - Decrypted Password for {password_entry.title}: {decrypted_password}")
+
+        decrypted_passwords.append({
+            "id": password_entry.id,
+            "title": password_entry.title,
+            "username": password_entry.username,
+            "url": password_entry.url,
+            "password": decrypted_password,
+            "created_at": password_entry.created_at
+        })
 
     return render_template("dashboard.html", stored_passwords=decrypted_passwords)
+
+
 
 
 @controller.route("/add_password", methods=['GET', 'POST'])
@@ -134,7 +144,8 @@ def add_password():
             flash("User session expired. Please log in again.", "danger")
             return redirect(url_for("controller.login"))
 
-        key = user.get_aes_key(user.password_hash)
+        # Debugging: Log user and form data
+        print(f"User: {user.username}, Form Data: {form.data}")
 
         password_entry = StoredPassword(
             title=form.title.data,
@@ -144,19 +155,25 @@ def add_password():
         )
 
         try:
-            password_entry.encrypt_password(form.password.data, key)
+            # Debugging: Log before encryption
+            print(f"Encrypting password for title: {form.title.data}")
+            password_entry.encrypt_password(form.password.data)
+
             db.session.add(password_entry)
             db.session.commit()
+
             flash("Password stored successfully!", "success")
             return redirect(url_for("controller.dashboard"))
         except Exception as e:
+            # Debugging: Log exception
+            print(f"Failed to store password: {e}")
             db.session.rollback()
             flash("Failed to store password. Please try again.", "danger")
 
     return render_template("add_password.html", form=form, generated_password=generated_password)
 
 
-@controller.route("/edit_password/<int:id>", methods=['GET', 'POST'])
+@controller.route("/edit_password/<int:id>", methods=["GET", "POST"])
 @login_required
 def edit_password(id):
     """Allows users to edit an encrypted password entry."""
@@ -167,32 +184,45 @@ def edit_password(id):
         flash("Unauthorized access.", "danger")
         return redirect(url_for("controller.dashboard"))
 
-    key = user.get_aes_key(user.password_hash)
-    decrypted_password = password_entry.decrypt_password(key)
+    form = PasswordForm()
 
-    if decrypted_password is None:
-        flash("Failed to decrypt password. Please try again.", "danger")
-        return redirect(url_for("controller.dashboard"))
-
-    form = PasswordForm(obj=password_entry)
-    form.password.data = decrypted_password
+    # Pre-fill the title, username, password, and URL fields on GET request
+    if request.method == "GET":
+        form.title.data = password_entry.title
+        form.username.data = password_entry.username
+        form.url.data = password_entry.url
+        form.password.data = password_entry.decrypt_password()
 
     if form.validate_on_submit():
         try:
+            # Debugging: Log the form submission
+            print(f"Debug: Submitted Title: {form.title.data}")
+            print(f"Debug: Submitted Username: {form.username.data}")
+            print(f"Debug: Submitted Password: {form.password.data}")
+            print(f"Debug: Submitted URL: {form.url.data}")
+
+            # Update the password entry with the new values
             password_entry.title = form.title.data
             password_entry.username = form.username.data
             password_entry.url = form.url.data or None
-            password_entry.encrypt_password(form.password.data, key)
 
-            db.session.commit()
+            # Encrypt the new password only if provided
+            if form.password.data.strip():
+                print("Debug: Encrypting new password.")
+                password_entry.encrypt_password(form.password.data)
+            else:
+                print("Debug: No new password provided. Keeping current password.")
+
+            db.session.commit()  # Save changes
+            print("Debug: Password updated successfully.")
             flash("Password updated successfully!", "success")
             return redirect(url_for("controller.dashboard"))
         except Exception as e:
             db.session.rollback()
+            print(f"Debug: Exception during password update: {e}")
             flash("Failed to update password. Please try again.", "danger")
 
     return render_template("edit_password.html", form=form, password_entry=password_entry)
-
 
 @controller.route("/delete_password/<int:id>", methods=['POST'])
 @login_required
@@ -214,3 +244,49 @@ def delete_password(id):
         flash("Failed to delete password. Please try again.", "danger")
 
     return redirect(url_for("controller.dashboard"))
+@controller.route("/about")
+def about():
+    return render_template("about.html")
+
+
+@controller.route("/change_user_password", methods=['GET', 'POST'])
+@login_required
+def change_password():
+    form = ChangePasswordForm()
+    user = User.query.get(session.get('user_id'))
+
+    if form.validate_on_submit():
+        if user.check_password(form.current_password.data):
+            user.set_password(form.new_password.data)
+            db.session.commit()
+            flash("Password updated successfully!", "success")
+            return redirect(url_for("controller.dashboard"))
+        else:
+            flash("Current password is incorrect.", "danger")
+
+    return render_template("change_user_password.html", form=form)
+
+
+@controller.route("/delete_account", methods=['GET', 'POST'])
+@login_required
+def delete_account():
+    form = DeleteAccountForm()
+    user = User.query.get(session.get('user_id'))
+
+    if form.validate_on_submit():
+        if form.confirm_username.data == user.username:
+            try:
+                db.session.delete(user)
+                db.session.commit()
+                session.clear()  # Clear session after deleting the account
+                flash("Your account has been deleted. You have been logged out.", "success")
+                return redirect(url_for("controller.home"))
+            except Exception as e:
+                db.session.rollback()
+                flash("An error occurred while deleting your account. Please try again.", "danger")
+        else:
+            flash("Username confirmation does not match.", "danger")
+
+    return render_template("delete_account.html", form=form)
+
+

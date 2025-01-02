@@ -250,11 +250,15 @@
                 {% if 'user_id' in session %}
                     <a href="{{ url_for('controller.dashboard') }}" class="btn nav-btn" style="text-decoration: none;">🏠 Dashboard</a>
                     <a href="{{ url_for('controller.logout') }}" class="btn nav-btn" style="text-decoration: none;">🚪 Logout</a>
+                    <a href="{{ url_for('controller.change_password') }}" class="btn nav-btn" style="text-decoration: none;">🔑 Change Password</a>
+                    <a href="{{ url_for('controller.delete_account') }}" class="btn nav-btn btn-danger" style="text-decoration: none;">🗑️ Delete Account</a>
                 {% else %}
                     <a href="{{ url_for('controller.login') }}" class="btn nav-btn" style="text-decoration: none;">🔑 Login</a>
                     <a href="{{ url_for('controller.register') }}" class="btn nav-btn" style="text-decoration: none;">📝 Register</a>
                 {% endif %}
                 <button onclick="openModal()" class="btn nav-btn" style="text-decoration: none;">🔄 Generate Password</button>
+                <a href="{{ url_for('controller.about') }}" class="btn nav-btn" style="text-decoration: none;">ℹ️ About us</a>
+
             </div>
         </nav>
     </header>
