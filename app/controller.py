@@ -186,6 +186,13 @@ def edit_password(id):
 
     form = PasswordForm()
 
+    # Pre-fill the title, username, password, and URL fields on GET request
+    if request.method == "GET":
+        form.title.data = password_entry.title
+        form.username.data = password_entry.username
+        form.url.data = password_entry.url
+        form.password.data = password_entry.decrypt_password()
+
     if form.validate_on_submit():
         try:
             # Debugging: Log the form submission
@@ -206,7 +213,6 @@ def edit_password(id):
             else:
                 print("Debug: No new password provided. Keeping current password.")
 
-
             db.session.commit()  # Save changes
             print("Debug: Password updated successfully.")
             flash("Password updated successfully!", "success")
@@ -217,7 +223,6 @@ def edit_password(id):
             flash("Failed to update password. Please try again.", "danger")
 
     return render_template("edit_password.html", form=form, password_entry=password_entry)
-
 
 @controller.route("/delete_password/<int:id>", methods=['POST'])
 @login_required
