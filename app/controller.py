@@ -244,3 +244,7 @@ def delete_password(id):
         flash("Failed to delete password. Please try again.", "danger")
 
     return redirect(url_for("controller.dashboard"))
+@controller.route("/about")
+def about():
+    return render_template("about.html")
+

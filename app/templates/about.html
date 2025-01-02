@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card content-wrapper about-container" style="text-align: center;">
+    <h1 style="
+        margin-bottom: 2rem;
+        font-size: 2rem;
+        background: linear-gradient(45deg, var(--primary-light), var(--primary));
+        -webkit-background-clip: text;
+        color: transparent;
+    ">About AetherGuard</h1>
+    <p style="margin: 1rem 0; line-height: 1.6; color: var(--text-secondary);">
+        Welcome to AetherGuard! Your impenetrable digital fortress for managing passwords securely.
+    </p>
+    <p style="margin: 1rem 0; line-height: 1.6; color: var(--text-secondary);">
+        AetherGuard is designed with privacy at its core, offering features like AES-256 encryption, Argon2 password hashing, and a user-friendly interface.
+    </p>
+    <p style="margin: 1rem 0; line-height: 1.6; color: var(--text-secondary);">
+        We believe in transparency and open-source development. Explore the project on
+        <a href="https://github.com/thisisarnabdas/password_manager" target="_blank" style="
+            color: var(--primary-light);
+            text-decoration: underline;
+            transition: color 250ms ease;
+        ">GitHub</a>.
+    </p>
+    <button onclick="history.back()" style="
+        margin-top: 2rem;
+        padding: 0.75rem 1.5rem;
+        background: var(--primary);
+        color: var(--text);
+        border: none;
+        border-radius: var(--radius-md);
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all var(--transition-base);
+    ">
+        ← Back
+    </button>
+</div>
+{% endblock %}
