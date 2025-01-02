@@ -12,8 +12,6 @@ class User(db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     stored_passwords = db.relationship('StoredPassword', backref='user',
                                        cascade='all, delete-orphan')
-    # stored_passwords = db.relationship("StoredPassword", backref="user", lazy=True)
-
     def set_password(self, password):
         self.password_hash = ph.hash(password)
 
@@ -34,7 +32,7 @@ class StoredPassword(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     def encrypt_password(self, raw_password):
-        """Encrypts the password using AES-256 and the static key."""
+        """Encrypts the password using AES-256"""
         try:
             key = Config.STATIC_AES_KEY
             print(f"Debug: Static Key Used for Encryption: {key}")
