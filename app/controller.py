@@ -104,15 +104,8 @@ def dashboard():
     decrypted_passwords = []
 
     for password_entry in stored_passwords:
-        # Debugging: Log fetched encrypted data
         print(f"Debug: Fetched Encrypted Password: {password_entry.encrypted_password}")
-
-        # Decrypt the password
         decrypted_password = password_entry.decrypt_password()
-
-        # Debugging: Log decrypted password
-        print(f"Debug: Dashboard - Decrypted Password for {password_entry.title}: {decrypted_password}")
-
         decrypted_passwords.append({
             "id": password_entry.id,
             "title": password_entry.title,
@@ -195,13 +188,7 @@ def edit_password(id):
 
     if form.validate_on_submit():
         try:
-            # Debugging: Log the form submission
-            print(f"Debug: Submitted Title: {form.title.data}")
-            print(f"Debug: Submitted Username: {form.username.data}")
-            print(f"Debug: Submitted Password: {form.password.data}")
-            print(f"Debug: Submitted URL: {form.url.data}")
 
-            # Update the password entry with the new values
             password_entry.title = form.title.data
             password_entry.username = form.username.data
             password_entry.url = form.url.data or None
