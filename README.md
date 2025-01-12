@@ -80,11 +80,11 @@ AetherGuard isn't just another password manager – it's your digital sanctuary.
 
 1. Clone the repository:
    ```
-   git clone https://github.com/thisisarnabdas/password_manager.git
+   git clone https://github.com/thisisarnabdas/AetherGuard.git
    ```
 2. Navigate to project directory:
    ```
-   cd password_manager
+   cd AetherGuard
    ```
 3. Install dependencies
    ```
@@ -140,3 +140,13 @@ AetherGuard is proudly licensed under the GNU General Public License v3.0 - see 
 </td>
 </tr>
 </table>
+
+## 📞 Contact
+📧 Arnab Das - arnab.das@g.bracu.ac.bd
+
+🔗 Project: https://www.github.com/thisisarnabdas/AetherGuard
+
+<div align="center">
+  <sub>Crafted with ❤️ by ARNAB</sub>
+</div>
+
